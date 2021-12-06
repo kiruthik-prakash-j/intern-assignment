@@ -13,7 +13,7 @@ phases:
     - docker push public.ecr.aws/s5o7d0z2/kj-php-app:mysql
     - docker build -t phpimage --no-cache ./php
     - docker tag phpimage:latest public.ecr.aws/s5o7d0z2/kj-php-app:php
-    - docker docker push public.ecr.aws/s5o7d0z2/kj-php-app:php
+    - docker push public.ecr.aws/s5o7d0z2/kj-php-app:php
     
   post_build:
     commands:
