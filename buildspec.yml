@@ -2,28 +2,19 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s5o7d0z2
-      - REPOSITORY_URI=public.ecr.aws/s5o7d0z2/kj-php-app
-      - IMAGE_TAG_MYSQL=mysql-build-$CODEBUILD_BUILD_NUMBER
-      - IMAGE_TAG_PHP=php-build-$CODEBUILD_BUILD_NUMBER
+    - echo PRE BUILD PHASE
+    # - echo $dockerpass | docker login --username $dockeruser --password-stdin 
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker images...
-      - docker build -t $REPOSITORY_URI:latest -f mysql/Dockerfile .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_MYSQL
-      - docker build -t $REPOSITORY_URI:latest -f php/Dockerfile .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_PHP
-  
+    - echo Build started on `date`
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s5o7d0z2
+    - docker build -t mysqldockimage ./mysql
+    - docker tag mysqldockimage:latest public.ecr.aws/s5o7d0z2/kj-php-app:mysql
+    - docker push public.ecr.aws/s5o7d0z2/kj-php-app:mysql
+    - docker build -t phpimage --no-cache ./php
+    - docker tag phpimage:latest public.ecr.aws/s5o7d0z2/kj-php-app:php
+    - docker docker push public.ecr.aws/s5o7d0z2/kj-php-app:php
+    
   post_build:
     commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG_MYSQL
-      - docker push $REPOSITORY_URI:$IMAGE_TAG_PHP
-      - echo Writing image definitions file...
-      - printf '[{"name":"mydb","imageUri":"%s"},\n{"name":"phpApp","imageUri":"%s"}]' "$REPOSITORY_URI:$IMAGE_TAG_MYSQL" "$REPOSITORY_URI:$IMAGE_TAG_PHP" > imagedefinitions.json      
-      - cat imagedefinitions.json 
-artifacts:
-    files: imagedefinitions.json
+    - echo Build completed on `date`
