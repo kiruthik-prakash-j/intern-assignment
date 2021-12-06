@@ -2,18 +2,28 @@ version: 0.2
 phases:
   pre_build:
     commands:
-    - echo PRE BUILD PHASE
-    # - echo $dockerpass | docker login --username $dockeruser --password-stdin 
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - IMAGE_TAG_MYSQL=mysql-build-$CODEBUILD_BUILD_NUMBER
+      - IMAGE_TAG_PHP=php-build-$CODEBUILD_BUILD_NUMBER
   build:
     commands:
-    - echo Build started on `date`
-    - docker build -t mysqldockimage ./mysql
-    - docker build -t phpimage --no-cache ./php
-    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s5o7d0z2
-    - docker tag mysqldockimage public.ecr.aws/s5o7d0z2/kj-php-app/mysql
-    - docker tag phpimage public.ecr.aws/s5o7d0z2/kj-php-app/php
-    - docker push public.ecr.aws/s5o7d0z2/kj-php-app/php
-    - docker push public.ecr.aws/s5o7d0z2/kj-php-app/mysql
+      - echo Build started on `date`
+      - echo Building the Docker images...
+      - docker build -t $REPOSITORY_URI:latest -f mysql/Dockerfile .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_MYSQL
+      - docker build -t $REPOSITORY_URI:latest -f php/Dockerfile .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_PHP
+  
   post_build:
     commands:
-    - echo Build completed on `date`
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG_MYSQL
+      - docker push $REPOSITORY_URI:$IMAGE_TAG_PHP
+      - echo Writing image definitions file...
+      - printf '[{"name":"mydb","imageUri":"%s"},\n{"name":"phpApp","imageUri":"%s"}]' "$REPOSITORY_URI:$IMAGE_TAG_MYSQL" "$REPOSITORY_URI:$IMAGE_TAG_PHP" > imagedefinitions.json      
+      - cat imagedefinitions.json 
+artifacts:
+    files: imagedefinitions.json
