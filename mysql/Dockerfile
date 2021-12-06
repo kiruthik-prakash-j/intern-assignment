@@ -3,4 +3,4 @@ FROM mysql:8.0.26
 
 LABEL Author="Kiruthik Prakash J"
 
-COPY mysql/scripts/ /docker-entrypoint-initdb.d/
+COPY ./mysql/scripts/ /docker-entrypoint-initdb.d/
