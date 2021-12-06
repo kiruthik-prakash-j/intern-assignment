@@ -9,7 +9,7 @@ phases:
     - echo Build started on `date`
     - docker build -t mysqldockimage ./mysql
     - docker build -t phpimage --no-cache ./php
-    - aws ecr-public get-login-password --region us-east-2 | docker login --username AWS --password-stdin public.ecr.aws/s5o7d0z2
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s5o7d0z2
     - docker tag mysqldockimage public.ecr.aws/s5o7d0z2/kj-php-app/mysql
     - docker tag phpimage public.ecr.aws/s5o7d0z2/kj-php-app/php
     - docker push public.ecr.aws/s5o7d0z2/kj-php-app/php
