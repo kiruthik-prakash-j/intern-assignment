@@ -8,6 +8,8 @@ phases:
     commands:
     - echo PRE BUILD PHASE
     - echo "Build version => $CODEBUILD_BUILD_NUMBER"
+    - PHP_APP_REPO_NAME=kj-php-app
+    - MYSQL_REPO_NAME=kj-mysql
     - PHP_IMAGE_NAME=$PHP_APP_REPO_NAME:v$CODEBUILD_BUILD_NUMBER
     - MYSQL_IMAGE_NAME=$MYSQL_REPO_NAME:v$CODEBUILD_BUILD_NUMBER
     - REGISTRY_URL=public.ecr.aws/s5o7d0z2
