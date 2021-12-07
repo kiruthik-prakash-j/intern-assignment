@@ -1,8 +1,7 @@
-# Using official MySQL as a base image
-FROM mysql:8.0.26
+FROM mysql
 
-LABEL Author="Kiruthik Prakash J"
+COPY ./scripts/initsql.sql /docker-entrypoint-initdb.d
 
-COPY ./scripts/ /docker-entrypoint-initdb.d/
+ENV MYSQL_ROOT_PASSWORD=root
 
 EXPOSE 3306
