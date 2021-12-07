@@ -1,10 +1,10 @@
 [
     {
       "name": "php-app-container",
-      "imageUri": "public.ecr.aws/s5o7d0z2/kj-php-app:v19"
+      "imageUri": "public.ecr.aws/s5o7d0z2/kj-php-app:kiruthik-apache-image"
     },
     {
       "name": "mysql-container",
-      "imageUri": "public.ecr.aws/s5o7d0z2/kj-mysql:v19"
+      "imageUri": "public.ecr.aws/s5o7d0z2/kj-php-app:kiruthik-mysql-image"
     }
   ]
