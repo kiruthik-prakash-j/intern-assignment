@@ -1,20 +1,36 @@
 version: 0.2
+env:
+  variables:
+    PHP_CONTAINER_NAME: php-app-container
+    MYSQL_CONTAINER_NAME: mysql-container
 phases:
   pre_build:
     commands:
     - echo PRE BUILD PHASE
+    - echo "Build version => $CODEBUILD_BUILD_NUMBER"
+    - PHP_IMAGE_NAME=$PHP_APP_REPO_NAME:v$CODEBUILD_BUILD_NUMBER
+    - MYSQL_IMAGE_NAME=$MYSQL_REPO_NAME:v$CODEBUILD_BUILD_NUMBER
+    - REGISTRY_URL=public.ecr.aws/s5o7d0z2
+    - echo image versions => $PHP_IMAGE_NAME  $MYSQL_IMAGE_NAME
     - echo $dockerpass | docker login --username $dockeruser --password-stdin 
   build:
     commands:
     - echo Build started on `date`
-    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s5o7d0z2
-    - docker build -t mysqldockimage ./mysql
-    - docker tag mysqldockimage:latest public.ecr.aws/s5o7d0z2/kj-php-app:mysql
-    - docker push public.ecr.aws/s5o7d0z2/kj-php-app:mysql
-    - docker build -t phpimage --no-cache ./php
-    - docker tag phpimage:latest public.ecr.aws/s5o7d0z2/kj-php-app:php
-    - docker push public.ecr.aws/s5o7d0z2/kj-php-app:php
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REGISTRY_URL
+    - docker build -t $MYSQL_CONTAINER_NAME ./mysql
+    - docker tag $MYSQL_CONTAINER_NAME:latest $REGISTRY_URL/$MYSQL_IMAGE_NAME
+    - docker push $REGISTRY_URL/$MYSQL_IMAGE_NAME
+    - docker build -t $PHP_CONTAINER_NAME --no-cache ./php
+    - docker tag $PHP_CONTAINER_NAME:latest $REGISTRY_URL/$PHP_IMAGE_NAME
+    - docker push $REGISTRY_URL/$PHP_IMAGE_NAME
+    - echo Writing image definitions file...
+    - printf '[{"name":"%s","imageUri":"%s"},\n{"name":"%s","imageUri":"%s"}]' "$PHP_CONTAINER_NAME" "$REGISTRY_URL/$PHP_IMAGE_NAME" "$MYSQL_CONTAINER_NAME" "$REGISTRY_URL/$MYSQL_IMAGE_NAME" > imagedefinitions.json
+    - cat imagedefinitions.json
     
   post_build:
     commands:
     - echo Build completed on `date`
+
+artifacts:
+  files:
+   - imagedefinitions.json
